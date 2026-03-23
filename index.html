@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>隨機問答·二十題（自動顯示答案）</title>
+    <title>隨機問答·二十大隨機題庫 (選項無前綴)</title>
     <style>
+        /* 樣式完全保留原本的視覺風格，僅調整選項內邊距 */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -93,19 +94,11 @@
             transform: translateY(-2px);
             box-shadow: 0 9px 0 #7f98ab;
         }
+        /* 隱藏原來的圓形前綴 */
         .prefix {
-            background: #c1dcee;
-            border-radius: 40px;
-            width: 48px;
-            height: 48px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 22px;
-            font-weight: 700;
-            font-size: 1.6rem;
-            border: 2px solid white;
+            display: none;
         }
+        /* 調整選項文字，不加前綴字母 */
         .correct-highlight {
             background: #a5d6a5 !important;
             border-color: #2b6c2b !important;
@@ -202,11 +195,12 @@
 
     <script>
         (function() {
-            // ----- 更新後的題庫 (依照最新提問) -----
-            const questions = [
+            // ========= 合併題庫：原20題 ＋ 新題目 (共31題) =========
+            const allQuestions = [
+                // 原始20題
                 { q: "以下哪一項不是火藥的用途？", options: ["A. 製造煙花", "B. 煮食", "C. 開闢土地", "D. 製造武器"], answer: "B", multi: false },
                 { q: "誰是中國歷史上的第一位皇帝？", options: ["A. 禹", "B. 孫中山", "C. 秦始皇", "D. 啟"], answer: "C", multi: false },
-                { q: "誰建立了中國歷史上第一個朝代？", options: ["A. 禹", "B. 孫中山", "C. 秦始皇", "D. 啟"], answer: "A", multi: false },
+                { q: "誰建立了中國歷史上第一個朝代？", options: ["A. 禹", "B. 孫中山", "C. 秦始皇", "D. 啟"], answer: "D", multi: false },
                 { q: "誰成功治水，成為傳說中的治水英雄？", options: ["A. 禹", "B. 孫中山", "C. 秦始皇", "D. 啟"], answer: "A", multi: false },
                 { q: "誰結束了中國長期的皇帝統治？", options: ["A. 禹", "B. 孫中山", "C. 秦始皇", "D. 啟"], answer: "B", multi: false },
                 { q: "誰改良造紙術？", options: ["A. 畢昇", "B. 張衡", "C. 扁鵲", "D. 蔡倫"], answer: "D", multi: false },
@@ -217,27 +211,47 @@
                 { q: "乾電池分為哪兩種極？（可選多於一個答案）", options: ["A. 南極", "B. 北極", "C. 正極", "D. 負極"], answer: ["C","D"], multi: true },
                 { q: "誰被後世尊為「工匠祖師」？", options: ["A. 蚩尤", "B. 張衡", "C. 扁鵲", "D. 魯班"], answer: "D", multi: false },
                 { q: "以下哪些是魯班的發明？（可選多於一個答案）", options: ["A. 指南針", "B. 鋸子", "C. 火藥", "D. 傘"], answer: ["B","D"], multi: true },
-                { q: "以下哪些物品會被磁鐵吸引？（可選多於一個答案）", options: ["A. 鐵尺", "B. 木筷子", "C. 曲別針", "D. 書"], answer: ["A","C"], multi: true },  // 鐵尺、曲別針
+                { q: "以下哪些物品會被磁鐵吸引？（可選多於一個答案）", options: ["A. 鐵尺", "B. 木筷子", "C. 曲別針", "D. 書"], answer: ["A","C"], multi: true },
                 { q: "以下哪一項屬於靜態的個人活動？", options: ["A. 踢足球", "B. 畫畫", "C. 跑步", "D. 捉迷藏"], answer: "B", multi: false },
                 { q: "以下哪一項屬於動態的群體活動？", options: ["A. 唱歌", "B. 騎單車", "C. 下棋", "D. 打羽毛球"], answer: "D", multi: false },
                 { q: "以下哪一項活動最能有助於增長知識？", options: ["A. 畫畫", "B. 下棋", "C. 看書", "D. 打籃球"], answer: "C", multi: false },
                 { q: "以下哪些是五千多年前中國先民生活的正確描述？（可選多於一個答案）", options: ["A. 會打獵", "B. 不穿衣服", "C. 住在山洞", "D. 會畜牧"], answer: ["A","C","D"], multi: true },
                 { q: "以下哪一項活動最能訓練思考能力？", options: ["A. 畫畫", "B. 下棋", "C. 看書", "D. 打籃球"], answer: "B", multi: false },
-                { q: "以下哪一項活動最能發揮創意？", options: ["A. 畫畫", "B. 下棋", "C. 看書", "D. 打籃球"], answer: "A", multi: false }
+                { q: "以下哪一項活動最能發揮創意？", options: ["A. 畫畫", "B. 下棋", "C. 看書", "D. 打籃球"], answer: "A", multi: false },
+                
+                // 新題目 (共11題) － 已潤飾
+                { q: "當進行升旗禮時，以下哪項行為是正確的？（可選多於一個答案）", options: ["A. 立正", "B. 跟著節奏拍手", "C. 邊唱邊揮手", "D. 認真地唱"], answer: [ "A","D"], multi: true }, //立正、認真地唱
+                { q: "孫中山領導的革命推翻了哪個朝代？", options: ["A. 秦朝", "B. 清朝", "C. 夏朝", "D. 商朝"], answer: "B", multi: false },
+                { q: "以下哪些被認為是黃帝時期的發明或創造成果？（可選多於一個答案）", options: ["A. 指南車", "B. 印刷術", "C. 文字", "D. 火藥"], answer: ["A","C"], multi: true },  // 指南車、文字
+                { q: "以下哪些屬於中國的四大發明？（可選多於一個答案）", options: ["A. 指南針", "B. 印刷術", "C. 文字", "D. 火藥"], answer: ["A","B","D"], multi: true },  // 指南針、印刷術、火藥
+                { q: "黃帝與炎帝的部落主要在哪一條河流域一帶定居？", options: ["A. 長江", "B. 珠江", "C. 黃河", "D. 西江"], answer: "C", multi: false },
+                { q: "建立秦朝的是以下哪一位？", options: ["A. 孫中山", "B. 啟", "C. 禹", "D. 秦始皇"], answer: "D", multi: false },
+                { q: "榫卯技術是由誰發明的？", options: ["A. 張衡", "B. 扁鵲", "C. 畢昇", "D. 魯班"], answer: "D", multi: false },
+                { q: "以下哪些是五十萬年前中國先民的生活面貌？", options: ["A. 用火燒烤食物", "B. 穿著獸皮縫製的衣服", "C. 使用石頭和木材製作工具", "D. 養蠶取絲織造衣物"], answer:"C", multi: false },
+                { q: "誰打敗了蚩尤？（可選多於一個答案）", options: ["A. 黃帝", "B. 秦始皇", "C. 啟", "D. 炎帝"], answer: ["A","D"], multi: true },  //黃帝、炎帝
+                { q: "中華人民共和國成立於哪一天？", options: ["A. 7月1日", "B. 12月20日", "C. 8月15日", "D. 10月1日"], answer: "D", multi: false },
+                { q: "以下哪些圖案出現在中華人民共和國國徽上？（可選多於一個答案）", options: ["A. 天安門", "B. 齒輪", "C. 麥穗", "D. 長城"], answer: ["A","B","C"], multi: true }
             ];
 
-            // 狀態變數
-            let remainingIndices = [];            // 未出題號 (隨機順序)
-            let currentIdx = null;                 // 當前顯示題目在questions的索引
+            // 設定要隨機抽取的題數 = 20
+            const EXAM_QUESTION_COUNT = 20;
+
+            // ========= 狀態變數 =========
+            let currentExamQuestions = [];            // 當前抽出的20題 (存放題目物件)
+            let remainingIndices = [];                 // 未出題號 (相對於 currentExamQuestions 的索引)
+            let currentIdx = null;                      // 當前顯示題目在 currentExamQuestions 的索引
             let score = 0;
-            let answered = false;                   // 本題是否已經答過 (鎖定)
-            let selectedOptions = new Set();         // 多選暫存
-            let multiCorrectAnswers = [];
+            let answered = false;
+            let selectedOptions = new Set();
+            
+            // 儲存當前題目亂序後的「選項內容陣列」(順序已打亂) 與 對應的正確字母(新字母)
+            let currentShuffledOptions = [];            // 存放亂序後的字串，例如 ["煮食", "製造煙花", "製造武器", "開闢土地"]  (純內容)
+            let currentCorrectLetters = new Set();       // 亂序後正確答案對應的新字母 (例如 Set {'B'})
 
             const container = document.getElementById('appContainer');
 
-            // 打亂陣列
-            function shuffle(arr) {
+            // 工具函式：打亂陣列
+            function shuffleArray(arr) {
                 for (let i = arr.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [arr[i], arr[j]] = [arr[j], arr[i]];
@@ -245,10 +259,17 @@
                 return arr;
             }
 
-            // 初始化剩餘題號 (隨機)
-            function resetRemaining() {
-                remainingIndices = questions.map((_, idx) => idx);
-                remainingIndices = shuffle(remainingIndices);
+            // 從 allQuestions 隨機抽取 EXAM_QUESTION_COUNT 題 (不重複)
+            function pickRandomQuestions() {
+                const shuffledAll = shuffleArray([...allQuestions]);
+                return shuffledAll.slice(0, EXAM_QUESTION_COUNT);
+            }
+
+            // 初始化測驗：隨機抽題，重置剩餘題號
+            function resetExam() {
+                currentExamQuestions = pickRandomQuestions();
+                remainingIndices = currentExamQuestions.map((_, idx) => idx);
+                remainingIndices = shuffleArray(remainingIndices);
             }
 
             // 取得下一題 (若完成回傳null)
@@ -257,9 +278,9 @@
                 return remainingIndices.shift();
             }
 
-            // 重新開始遊戲
+            // 重新開始遊戲 (重新抽20題)
             function restart() {
-                resetRemaining();
+                resetExam();
                 score = 0;
                 const next = getNext();
                 if (next !== null) {
@@ -272,7 +293,7 @@
 
             // 完成後顯示總分
             function renderFinish() {
-                const totalPossible = questions.length * 5;
+                const totalPossible = EXAM_QUESTION_COUNT * 5;
                 container.innerHTML = `
                     <div class="top-bar" style="justify-content:center; background:#e0dbb8;">
                         <span class="score" style="background:#9ea9b5; color:white;">🏁 完成</span>
@@ -280,53 +301,106 @@
                     <div class="finish-panel">
                         <div style="font-size:2.2rem;">🎉 你完成了所有題目！</div>
                         <div class="finish-score">🏆 ${score} / ${totalPossible} 分</div>
-                        <button class="restart-btn" id="restartFinishBtn" style="background:#f5e56b;">📋 再玩一次</button>
+                        <button class="restart-btn" id="restartFinishBtn" style="background:#f5e56b;">📋 再玩一次 (重新抽題)</button>
                     </div>
                 `;
                 document.getElementById('restartFinishBtn').addEventListener('click', restart);
             }
 
-            // 顯示正確答案文字 (用於反饋區)
-            function getAnswerDisplay(q) {
-                if (!q.multi) {
-                    // 單選: 找到對應字母的完整選項文字
-                    const ansLetter = q.answer;
-                    const opt = q.options.find(opt => opt.startsWith(ansLetter));
-                    return `✅ 正確答案：${opt}`;
+            /**
+             * 新的亂序策略：只回傳純內容，不帶前綴
+             * 1. 從原始選項中取出「純內容」（去掉 A. B. 等前綴）
+             * 2. 將這些內容陣列打亂
+             * 3. 回傳打亂後的純內容陣列
+             * 4. 根據原始答案內容，找出對應的索引位置（0,1,2,3），並轉換成新字母 (A,B,C,D)
+             */
+            function getShuffledContentsWithCorrectLetters(rawQ) {
+                const originalOpts = rawQ.options;
+                
+                // 提取純內容，並建立 原始字母 -> 內容 的映射
+                const contentMap = new Map();
+                const contents = [];
+                originalOpts.forEach(opt => {
+                    const letter = opt.charAt(0);
+                    const content = opt.substring(2); // 跳過 "A. "
+                    contentMap.set(letter, content);
+                    contents.push(content);
+                });
+
+                // 打亂內容順序
+                const shuffledContents = shuffleArray([...contents]);
+
+                // 找出原始正確答案的內容
+                const rawAnswer = rawQ.answer;
+                let correctContents = [];
+                if (Array.isArray(rawAnswer)) {
+                    correctContents = rawAnswer.map(l => contentMap.get(l));
                 } else {
-                    // 多選: 取出所有正確選項合併
-                    const correctOpts = q.options.filter(opt => q.answer.includes(opt.charAt(0)));
-                    return `✅ 正確答案：${correctOpts.join('、')}`;
+                    correctContents = [contentMap.get(rawAnswer)];
+                }
+
+                // 在新的內容陣列中，找出哪些位置的內容與 correctContents 匹配，並轉換為字母 A(0), B(1), C(2), D(3)
+                const newCorrectLetters = [];
+                const prefixLetters = ['A', 'B', 'C', 'D'];
+                shuffledContents.forEach((content, index) => {
+                    if (correctContents.includes(content)) {
+                        newCorrectLetters.push(prefixLetters[index]);
+                    }
+                });
+
+                return {
+                    shuffledContents: shuffledContents,   // 純內容陣列，例如 ["煮食", "製造煙花", "製造武器", "開闢土地"]
+                    correctAnswer: rawQ.multi ? newCorrectLetters : newCorrectLetters[0]
+                };
+            }
+
+            // 顯示正確答案文字 (用於回饋區)
+            function getAnswerDisplay(q, shuffledContents, correctLetters) {
+                const prefixLetters = ['A', 'B', 'C', 'D'];
+                if (!q.multi) {
+                    // 單選: correctLetters 是字母
+                    const index = prefixLetters.indexOf(correctLetters);
+                    const content = shuffledContents[index];
+                    return `✅ 正確答案：${content}`;
+                } else {
+                    // 多選: correctLetters 是陣列
+                    const correctContents = [];
+                    correctLetters.forEach(letter => {
+                        const index = prefixLetters.indexOf(letter);
+                        correctContents.push(shuffledContents[index]);
+                    });
+                    return `✅ 正確答案：${correctContents.join('、')}`;
                 }
             }
 
             // 處理單選點擊
-            function handleSingleClick(letter, optElement, q) {
+            function handleSingleClick(index, optElement, q, correctLetter) {
                 if (answered) return;
-                const isCorrect = (letter === q.answer);
+                const prefixLetters = ['A', 'B', 'C', 'D'];
+                const letter = prefixLetters[index];
+                const isCorrect = (letter === correctLetter);
                 if (isCorrect) score += 5;
                 answered = true;
 
-                // 高亮所有選項: 正確答案綠色，錯誤選中的變紅 (如果選錯)
                 const allOpts = document.querySelectorAll('.option');
-                allOpts.forEach(opt => {
-                    const l = opt.dataset.letter;
-                    if (l === q.answer) opt.classList.add('correct-highlight');
-                    else if (l === letter && !isCorrect) opt.classList.add('wrong-highlight');
+                allOpts.forEach((opt, i) => {
+                    const l = prefixLetters[i];
+                    if (l === correctLetter) opt.classList.add('correct-highlight');
+                    else if (i === index && !isCorrect) opt.classList.add('wrong-highlight');
                     opt.classList.add('locked');
                 });
 
-                // 更新反饋訊息，顯示正確答案
                 const hintDiv = document.getElementById('answerHint');
-                hintDiv.innerText = getAnswerDisplay(q);
-
-                // 顯示下一題按鈕
+                hintDiv.innerText = getAnswerDisplay(q, currentShuffledOptions, correctLetter);
                 document.getElementById('nextBtn').classList.remove('hidden');
             }
 
             // 多選: 點擊選項(暫存)
-            function handleMultiClick(letter, optElement, q) {
+            function handleMultiClick(index, optElement) {
                 if (answered) return;
+                const prefixLetters = ['A', 'B', 'C', 'D'];
+                const letter = prefixLetters[index];
+                
                 if (selectedOptions.has(letter)) {
                     selectedOptions.delete(letter);
                     optElement.style.background = '';
@@ -339,59 +413,61 @@
             }
 
             // 多選提交
-            function submitMulti(q) {
+            function submitMulti(q, correctLetterSet) {
                 if (answered) return;
-                const correctSet = new Set(q.answer);   // 例如 {'C','D'}
                 let isCorrect = false;
-                if (selectedOptions.size === correctSet.size) {
+                if (selectedOptions.size === correctLetterSet.size) {
                     let allMatch = true;
                     for (let s of selectedOptions) {
-                        if (!correctSet.has(s)) { allMatch = false; break; }
+                        if (!correctLetterSet.has(s)) { allMatch = false; break; }
                     }
                     isCorrect = allMatch;
                 }
                 if (isCorrect) score += 5;
                 answered = true;
 
-                // 高亮所有選項
                 const allOpts = document.querySelectorAll('.option');
-                allOpts.forEach(opt => {
-                    const l = opt.dataset.letter;
-                    if (correctSet.has(l)) opt.classList.add('correct-highlight');
-                    else if (selectedOptions.has(l) && !correctSet.has(l)) opt.classList.add('wrong-highlight');
+                const prefixLetters = ['A', 'B', 'C', 'D'];
+                allOpts.forEach((opt, i) => {
+                    const l = prefixLetters[i];
+                    if (correctLetterSet.has(l)) opt.classList.add('correct-highlight');
+                    else if (selectedOptions.has(l) && !correctLetterSet.has(l)) opt.classList.add('wrong-highlight');
                     opt.classList.add('locked');
-                    opt.style.background = ''; // 清除暫存色
+                    opt.style.background = '';
                 });
 
-                document.getElementById('answerHint').innerText = getAnswerDisplay(q);
+                document.getElementById('answerHint').innerText = getAnswerDisplay(q, currentShuffledOptions, Array.from(correctLetterSet));
                 document.getElementById('nextBtn').classList.remove('hidden');
-                document.getElementById('submitMultiBtn').style.display = 'none'; // 隱藏提交鍵
+                document.getElementById('submitMultiBtn').style.display = 'none';
             }
 
             // 渲染題目
             function renderQuestion(idx) {
-                const q = questions[idx];
-                // 重置狀態
+                const rawQ = currentExamQuestions[idx];
+
+                // 使用新的亂序函式：只回傳純內容，不帶前綴
+                const { shuffledContents, correctAnswer } = getShuffledContentsWithCorrectLetters(rawQ);
+                currentShuffledOptions = shuffledContents;   // 儲存純內容陣列
+
                 answered = false;
                 selectedOptions.clear();
 
-                // 製作選項HTML
+                // 製作選項HTML (直接顯示內容，不顯示前綴字母)
                 let optsHtml = '';
-                q.options.forEach(opt => {
-                    const letter = opt.charAt(0);
-                    optsHtml += `<div class="option" data-letter="${letter}"><span class="prefix">${letter}</span>${opt.substring(2)}</div>`;
+                shuffledContents.forEach((content, index) => {
+                    // 不顯示前綴字母，只顯示內容
+                    optsHtml += `<div class="option" data-index="${index}">${content}</div>`;
                 });
 
-                // 依照是否多選決定額外按鈕
-                const multiSubmitHtml = q.multi ? `<button class="next-btn" id="submitMultiBtn" style="margin-right:15px; padding:12px 28px;">✔ 提交</button>` : '';
+                const multiSubmitHtml = rawQ.multi ? `<button class="next-btn" id="submitMultiBtn" style="margin-right:15px; padding:12px 28px;">✔ 提交</button>` : '';
 
                 const html = `
                     <div class="top-bar">
                         <span class="score">🏅 ${score}</span>
-                        <span class="remaining">⏳ 剩餘 ${remainingIndices.length+1} 題</span>
+                        <span class="remaining">⏳ 剩餘 ${remainingIndices.length} 題</span>
                     </div>
                     <div class="question-box">
-                        <div class="q-text">${q.q}</div>
+                        <div class="q-text">${rawQ.q}</div>
                         <div class="options" id="optionsContainer">${optsHtml}</div>
                         <div class="feedback-area">
                             <span class="answer-hint" id="answerHint">🔍 請作答</span>
@@ -402,34 +478,33 @@
                         </div>
                     </div>
                     <div style="text-align: center;">
-                        <button class="restart-btn" id="restartBtn">⟲ 重新開始</button>
+                        <button class="restart-btn" id="restartBtn">⟲ 重新抽題</button>
                     </div>
                 `;
 
                 container.innerHTML = html;
 
-                // 繫結選項點擊
-                document.querySelectorAll('.option').forEach(opt => {
+                document.querySelectorAll('.option').forEach((opt, index) => {
                     opt.addEventListener('click', (e) => {
-                        const letter = opt.dataset.letter;
-                        if (!q.multi) {
-                            handleSingleClick(letter, opt, q);
+                        if (!rawQ.multi) {
+                            handleSingleClick(index, opt, rawQ, correctAnswer);
                         } else {
-                            handleMultiClick(letter, opt, q);
+                            handleMultiClick(index, opt);
                         }
                     });
                 });
 
-                // 多選提交按鈕
-                if (q.multi && document.getElementById('submitMultiBtn')) {
-                    document.getElementById('submitMultiBtn').addEventListener('click', () => submitMulti(q));
+                if (rawQ.multi && document.getElementById('submitMultiBtn')) {
+                    document.getElementById('submitMultiBtn').addEventListener('click', () => {
+                        const correctSet = new Set(correctAnswer);
+                        submitMulti(rawQ, correctSet);
+                    });
                 }
 
-                // 下一題按鈕 (剛開始隱藏)
                 const nextBtn = document.getElementById('nextBtn');
                 if (nextBtn) {
                     nextBtn.addEventListener('click', () => {
-                        if (!answered) return; // 未作答不可前進 (保險)
+                        if (!answered) return;
                         const nextIdx = getNext();
                         if (nextIdx !== null) {
                             currentIdx = nextIdx;
@@ -440,12 +515,11 @@
                     });
                 }
 
-                // 重新開始
                 document.getElementById('restartBtn').addEventListener('click', restart);
             }
 
-            // 初始化
-            resetRemaining();
+            // 初始化：第一次抽題並開始
+            resetExam();
             const first = getNext();
             if (first !== null) {
                 currentIdx = first;
