@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>校園方位小導師</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
+        
+        :root {
+            --bg-color: #f0fdf4;
+            --main-green: #15803d;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', '微軟正黑體', sans-serif;
+            background-color: var(--bg-color);
+            overflow: hidden; /* 防止出現滾動條，保持單頁感 */
+        }
+
+        .game-font {
+            font-family: 'ZCOOL KuaiLe', cursive, 'Microsoft JhengHei';
+        }
+
+        /* 響應式容器，高度自適應視窗 */
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .map-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 8px;
+            height: 100%;
+            width: 100%;
+        }
+
+        .map-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #ef4444;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-direction {
+            transition: all 0.2s;
+            box-shadow: 0 4px 0px rgba(0,0,0,0.1);
+        }
+
+        .btn-direction:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* 桌面端字體大小優化 */
+        @media (min-width: 768px) {
+            .map-card { font-size: 1.1rem; }
+            .question-text { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- 頂部標題與分數欄 -->
+        <header class="flex justify-between items-end mb-2">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-green-700 game-font">校園方位小導師</h1>
+                <p class="text-xs md:text-sm text-gray-500">找出正確的方位，獲取高分吧！</p>
+            </div>
+            <div class="flex gap-4 text-sm md:text-lg">
+                <div class="bg-white px-3 py-1 rounded-full border border-green-200 font-bold">
+                    第 <span id="question-count" class="text-green-600">1</span>/20 題
+                </div>
+                <div class="bg-white px-3 py-1 rounded-full border border-orange-200 font-bold">
+                    得分: <span id="score" class="text-orange-600">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 地圖區域：佔據中間大部分空間 -->
+        <main class="flex-grow bg-[#b9e7e1] rounded-2xl border-4 border-green-200 relative p-3 shadow-inner">
+            <div class="map-grid">
+                <!-- 地圖節點 -->
+                <div class="map-card"><span class="text-red-600 font-bold">李姑娘醫護室</span><span class="text-red-500 text-xl">+</span></div>
+                <div class="map-card"><span class="text-red-600 font-bold">教務處</span><div class="w-4 h-6 bg-blue-300"></div></div>
+                <div class="map-card relative">
+                    <span class="text-red-600 font-bold">教師廁所</span><span>🚻</span>
+                    <div class="absolute right-2 top-2 text-blue-600 text-center">
+                        <div class="text-xl">↑</div><div class="text-[10px]">北</div>
+                    </div>
+                </div>
+                <div class="map-card"><span class="text-red-600 font-bold">教學樓</span><span>🏫</span></div>
+                <div class="map-card"><span class="text-red-600 font-bold">足球場</span><div class="w-8 h-4 border border-white bg-green-500 rounded-sm"></div></div>
+                <div class="map-card"><span class="text-red-600 font-bold">圖書館</span><span>🏛️</span></div>
+                <div class="map-card"><span class="text-red-600 font-bold">蘇姑娘醫護室</span><span class="text-red-500 text-xl">+</span></div>
+                <div class="map-card"><span class="text-red-600 font-bold">住宅大廈</span><span>🏢</span></div>
+                <div class="map-card"><span class="text-red-600 font-bold">辦公樓</span><span>🏢</span></div>
+            </div>
+        </main>
+
+        <!-- 回饋提示區 (浮動或固定高度) -->
+        <div id="feedback" class="h-10 my-1 flex items-center justify-center font-bold text-lg invisible">
+            <!-- 訊息動態插入 -->
+        </div>
+
+        <!-- 交互區域：題目與按鈕 -->
+        <section class="bg-white rounded-2xl p-4 shadow-lg border-2 border-gray-100 mb-2">
+            <h2 id="question-text" class="question-text text-xl md:text-2xl font-bold text-center text-gray-800 mb-4">
+                載入中...
+            </h2>
+            <div class="grid grid-cols-4 gap-3">
+                <button onclick="checkAnswer('北')" class="btn-direction bg-green-500 hover:bg-green-600 text-white font-bold py-3 md:py-5 rounded-xl md:text-xl">北面</button>
+                <button onclick="checkAnswer('南')" class="btn-direction bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 md:py-5 rounded-xl md:text-xl">南面</button>
+                <button onclick="checkAnswer('西')" class="btn-direction bg-red-500 hover:bg-red-600 text-white font-bold py-3 md:py-5 rounded-xl md:text-xl">西面</button>
+                <button onclick="checkAnswer('東')" class="btn-direction bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 md:py-5 rounded-xl md:text-xl">東面</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- 遊戲結算畫面 -->
+    <div id="result-screen" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center">
+            <h2 class="text-3xl font-bold text-green-600 mb-2 game-font">🎉 挑戰完成！</h2>
+            <p class="text-xl mb-4">你的總分是</p>
+            <div class="text-6xl font-bold text-orange-500 mb-8" id="final-score">0</div>
+            <button onclick="resetGame()" class="w-full bg-green-500 text-white font-bold py-4 rounded-full text-xl hover:bg-green-600 shadow-lg">
+                再玩一次
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const locations = [
+            { name: "李姑娘醫護室", x: 0, y: 0 },
+            { name: "教務處", x: 1, y: 0 },
+            { name: "教師廁所", x: 2, y: 0 },
+            { name: "教學樓", x: 0, y: 1 },
+            { name: "足球場", x: 1, y: 1 },
+            { name: "圖書館", x: 2, y: 1 },
+            { name: "蘇姑娘醫護室", x: 0, y: 2 },
+            { name: "住宅大廈", x: 1, y: 2 },
+            { name: "辦公樓", x: 2, y: 2 }
+        ];
+
+        let currentQuestion = 1;
+        let score = 0;
+        let correctAnswer = "";
+        let isProcessing = false;
+
+        function generateQuestion() {
+            if (currentQuestion > 20) {
+                showResult();
+                return;
+            }
+
+            isProcessing = false;
+            const feedback = document.getElementById('feedback');
+            feedback.style.visibility = 'hidden';
+            
+            let locA, locB;
+            do {
+                locA = locations[Math.floor(Math.random() * locations.length)];
+                locB = locations[Math.floor(Math.random() * locations.length)];
+            } while (locA === locB || (locA.x !== locB.x && locA.y !== locB.y));
+
+            if (locA.x > locB.x) correctAnswer = "東";
+            else if (locA.x < locB.x) correctAnswer = "西";
+            else if (locA.y > locB.y) correctAnswer = "南";
+            else if (locA.y < locB.y) correctAnswer = "北";
+
+            document.getElementById('question-text').innerHTML = 
+                `<span class="text-blue-600">${locA.name}</span> 在 <span class="text-red-600">${locB.name}</span> 的哪一面？`;
+            document.getElementById('question-count').innerText = currentQuestion;
+        }
+
+        function checkAnswer(answer) {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            const feedback = document.getElementById('feedback');
+            feedback.style.visibility = 'visible';
+
+            if (answer === correctAnswer) {
+                score += 5;
+                feedback.innerText = "正確！你真聰明！🌟";
+                feedback.className = "h-10 my-1 flex items-center justify-center font-bold text-lg text-green-600";
+                document.getElementById('score').innerText = score;
+            } else {
+                feedback.innerText = `答錯了，應該是「${correctAnswer}面」。`;
+                feedback.className = "h-10 my-1 flex items-center justify-center font-bold text-lg text-red-500";
+            }
+
+            currentQuestion++;
+            setTimeout(generateQuestion, 1200);
+        }
+
+        function showResult() {
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('result-screen').classList.remove('hidden');
+        }
+
+        function resetGame() {
+            score = 0;
+            currentQuestion = 1;
+            document.getElementById('score').innerText = "0";
+            document.getElementById('result-screen').classList.add('hidden');
+            generateQuestion();
+        }
+
+        window.onload = generateQuestion;
+    </script>
+</body>
+</html>
